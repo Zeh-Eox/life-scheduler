@@ -1,11 +1,12 @@
 services:
   api:
     build: .
-    container_name: lifescheduler-api
-    restart: unless-stopped
+    container_name: life-scheduler-api
 
-    ports:
-      - '127.0.0.1:3009:3009'
+    restart: unless-stopped
 
     env_file:
       - .env
+
+    ports:
+      - '127.0.0.1:3009:3009'
