@@ -1,0 +1,155 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// --- Enums ---
+
+enum TypeRecurrence {
+  PRECISE
+  APPROXIMATIVE
+}
+
+enum Frequence {
+  QUOTIDIENNE
+  HEBDOMADAIRE
+  MENSUELLE
+  ANNUELLE
+}
+
+enum JourSemaine {
+  LUNDI
+  MARDI
+  MERCREDI
+  JEUDI
+  VENDREDI
+  SAMEDI
+  DIMANCHE
+}
+
+enum UniteTemps {
+  JOURS
+  SEMAINES
+  MOIS
+}
+
+enum StatutNotification {
+  EN_ATTENTE
+  ENVOYEE
+  ECHOUEE
+}
+
+enum Plateforme {
+  IOS
+  ANDROID
+}
+
+// --- Modèles ---
+
+model Utilisateur {
+  id               String   @id @default(uuid())
+  nom              String
+  email            String   @unique
+  motDePasseHash   String
+  dateInscription  DateTime @default(now())
+  hashedRefreshToken String?
+
+  categories       Categorie[]
+  appareils        Appareil[]
+
+  @@map("utilisateurs")
+}
+
+model Categorie {
+  id             String   @id @default(uuid())
+  nom            String
+  description    String?
+  couleur        String?
+  dateCreation   DateTime @default(now())
+
+  utilisateurId  String
+  utilisateur    Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+
+  evenements     Evenement[]
+
+  @@index([utilisateurId])
+  @@map("categories")
+}
+
+model Evenement {
+  id             String   @id @default(uuid())
+  titre          String
+  description    String?
+  actif          Boolean  @default(true)
+  dateCreation   DateTime @default(now())
+
+  categorieId    String
+  categorie      Categorie @relation(fields: [categorieId], references: [id], onDelete: Cascade)
+
+  recurrence     Recurrence?
+  notifications  Notification[]
+
+  @@index([categorieId])
+  @@map("evenements")
+}
+
+// Table unique pour les deux variantes de récurrence (approche "table par hiérarchie").
+// Les champs non utilisés selon le type restent null.
+model Recurrence {
+  id      String         @id @default(uuid())
+  type    TypeRecurrence
+
+  // Champs utilisés si type = PRECISE
+  frequence    Frequence?
+  jourSemaine  JourSemaine?
+  jourMois     Int?
+  heure        String?      // format "HH:mm"
+
+  // Champs utilisés si type = APPROXIMATIVE
+  intervalleEstime      Int?
+  uniteTemps            UniteTemps?
+  dateDernierRappel     DateTime?
+  prochainRappelEstime  DateTime?
+
+  evenementId  String    @unique
+  evenement    Evenement @relation(fields: [evenementId], references: [id], onDelete: Cascade)
+
+  @@map("recurrences")
+}
+
+model Notification {
+  id                String              @id @default(uuid())
+  dateEnvoiPrevue   DateTime
+  dateEnvoiReelle   DateTime?
+  statut            StatutNotification  @default(EN_ATTENTE)
+  message           String?
+
+  evenementId       String
+  evenement         Evenement @relation(fields: [evenementId], references: [id], onDelete: Cascade)
+
+  @@index([evenementId])
+  @@index([dateEnvoiPrevue])
+  @@map("notifications")
+}
+
+model Appareil {
+  id                  String    @id @default(uuid())
+  tokenPush           String    @unique
+  plateforme          Plateforme
+  dateEnregistrement  DateTime  @default(now())
+
+  utilisateurId       String
+  utilisateur         Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+
+  @@index([utilisateurId])
+  @@map("appareils")
+}

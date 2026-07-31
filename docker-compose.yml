@@ -1,0 +1,31 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: lifeScheduler-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: lifeScheduler
+      POSTGRES_PASSWORD: lifeScheduler
+      POSTGRES_DB: lifeScheduler
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - lifeScheduler_postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lifeScheduler -d lifeScheduler"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+    networks:
+      - lifeScheduler-network
+
+volumes:
+  lifeScheduler_postgres_data:
+
+networks:
+  lifeScheduler-network:

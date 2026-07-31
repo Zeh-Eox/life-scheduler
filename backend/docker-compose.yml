@@ -1,0 +1,11 @@
+services:
+  api:
+    build: .
+    container_name: lifescheduler-api
+    restart: unless-stopped
+
+    ports:
+      - '127.0.0.1:3009:3009'
+
+    env_file:
+      - .env
