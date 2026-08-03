@@ -25,14 +25,10 @@ RUN corepack enable && corepack prepare pnpm@9 --activate
 
 ENV NODE_ENV=production
 
-COPY package.json pnpm-lock.yaml ./
-COPY prisma ./prisma
-
-RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
-    pnpm install --frozen-lockfile --prod
-
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/prisma ./prisma
 
 EXPOSE 3009
 
