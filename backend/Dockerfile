@@ -1,5 +1,5 @@
 # --- Étape 1 : dépendances + build ---
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
@@ -16,7 +16,7 @@ RUN pnpm prisma generate
 RUN pnpm build
 
 # --- Étape 2 : image de production ---
-FROM node:20-alpine AS production
+FROM node:22-alpine AS production
 
 WORKDIR /app
 
